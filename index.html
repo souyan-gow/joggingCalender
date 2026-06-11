@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1.1km トレーニングカレンダー</title>
+<style>
+  :root {
+    --rest:#eef1f4; --rest-tx:#7a8593;
+    --jog:#e3f1e8; --jog-tx:#2f7d4f;
+    --strength:#fdeede; --strength-tx:#b9701a;
+    --interval:#fde4e4; --interval-tx:#c0392b;
+    --race:#e6ecfb; --race-tx:#3155b5;
+    --outdoor:#e7f3f7; --outdoor-tx:#1f7a94;
+    --taper:#f2e9f7; --taper-tx:#7d4a9e;
+  }
+  * { box-sizing:border-box; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",sans-serif;
+    margin:0; padding:24px 16px; background:#fafbfc; color:#2c3138; line-height:1.5;
+  }
+  .wrap { max-width:980px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 4px; font-weight:700; letter-spacing:.02em; }
+  .sub { color:#7a8593; font-size:14px; margin-bottom:16px; }
+
+  .toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; }
+  .countdown {
+    background:#fff4cc; color:#8a6500; font-weight:700; font-size:13px;
+    padding:6px 14px; border-radius:20px; border:1px solid #e6cd6e;
+  }
+  .progress-wrap { flex:1; min-width:160px; }
+  .progress-label { font-size:12px; color:#7a8593; margin-bottom:3px; }
+  .progress-bar { background:#e8ebef; border-radius:10px; height:10px; overflow:hidden; }
+  .progress-fill { background:#2f7d4f; height:100%; width:0%; transition:width .3s; }
+  .btn-today {
+    background:#2c3138; color:#fff; border:none; font-size:13px; font-weight:600;
+    padding:7px 16px; border-radius:20px; cursor:pointer;
+  }
+  .btn-today:active { opacity:.8; }
+
+  .legend { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px; }
+  .legend span { font-size:12px; padding:3px 10px; border-radius:20px; font-weight:600; }
+  .lg-rest{background:var(--rest);color:var(--rest-tx);}
+  .lg-jog{background:var(--jog);color:var(--jog-tx);}
+  .lg-strength{background:var(--strength);color:var(--strength-tx);}
+  .lg-interval{background:var(--interval);color:var(--interval-tx);}
+  .lg-race{background:var(--race);color:var(--race-tx);}
+  .lg-outdoor{background:var(--outdoor);color:var(--outdoor-tx);}
+  .lg-taper{background:var(--taper);color:var(--taper-tx);}
+
+  .phase {
+    margin:28px 0 10px; padding:8px 14px; border-radius:8px; font-weight:700; font-size:15px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .p1{background:#e3f1e8;color:#2f7d4f;}
+  .p2{background:#fde4e4;color:#c0392b;}
+  .p3{background:#e6ecfb;color:#3155b5;}
+  .p4{background:#f2e9f7;color:#7d4a9e;}
+  .phase small { font-weight:500; opacity:.8; font-size:12px; }
+
+  .week {
+    background:#fff; border:1px solid #e8ebef; border-radius:12px;
+    margin-bottom:12px; overflow:hidden;
+  }
+  .week-head {
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:8px 14px; background:#f6f8fa; border-bottom:1px solid #e8ebef;
+  }
+  .week-head .wno { font-weight:700; font-size:14px; }
+  .week-head .wdate { font-size:12px; color:#7a8593; }
+  .days { display:grid; grid-template-columns:repeat(7,1fr); }
+  .day {
+    padding:8px 6px 10px; border-right:1px solid #f0f2f4; min-height:96px;
+    display:flex; flex-direction:column; position:relative;
+  }
+  .day:last-child { border-right:none; }
+  .day.today { background:#fffbe9; box-shadow:inset 0 0 0 2px #e6b800; border-radius:6px; }
+  .day.done { background:#f3faf5; }
+  .dow { font-size:11px; color:#9aa3ad; font-weight:600; margin-bottom:2px; }
+  .dnum { font-size:12px; color:#2c3138; font-weight:600; margin-bottom:6px; display:flex; align-items:center; gap:4px;}
+  .today-badge { background:#e6b800; color:#fff; font-size:9px; padding:1px 5px; border-radius:8px; font-weight:700;}
+  .sat .dow,.sat .dnum{color:#3155b5;}
+  .sun .dow,.sun .dnum{color:#c0392b;}
+  .tag {
+    font-size:11px; padding:4px 6px; border-radius:6px; font-weight:600;
+    line-height:1.35; flex:1; display:flex; align-items:center;
+  }
+  .t-rest{background:var(--rest);color:var(--rest-tx);}
+  .t-jog{background:var(--jog);color:var(--jog-tx);}
+  .t-strength{background:var(--strength);color:var(--strength-tx);}
+  .t-interval{background:var(--interval);color:var(--interval-tx);}
+  .t-race{background:var(--race);color:var(--race-tx);}
+  .t-outdoor{background:var(--outdoor);color:var(--outdoor-tx);}
+  .t-taper{background:var(--taper);color:var(--taper-tx);}
+  .t-goal{background:#fff4cc;color:#9a7400;border:1px dashed #d9b440;justify-content:center;text-align:center;font-weight:700;}
+
+  .day-foot { margin-top:6px; }
+  .chk { display:flex; align-items:center; gap:4px; font-size:11px; color:#2f7d4f; font-weight:600; cursor:pointer; user-select:none;}
+  .chk input { width:14px; height:14px; accent-color:#2f7d4f; cursor:pointer; margin:0;}
+  .memo-btn {
+    margin-top:4px; font-size:10px; color:#7a8593; background:none; border:1px dashed #c8cfd6;
+    border-radius:5px; padding:2px 6px; cursor:pointer; width:100%; text-align:left;
+  }
+  .memo-btn.has-memo { color:#b9701a; border-color:#e6c089; background:#fdf6ec; font-weight:600;}
+  .memo-box { margin-top:4px; }
+  .memo-box textarea {
+    width:100%; font-size:11px; border:1px solid #c8cfd6; border-radius:5px; padding:4px;
+    font-family:inherit; resize:vertical; min-height:46px;
+  }
+  .memo-box.hidden { display:none; }
+
+  .footer { margin-top:28px; font-size:12px; color:#9aa3ad; }
+  .reset-btn {
+    margin-top:14px; font-size:12px; color:#c0392b; background:none;
+    border:1px solid #e3b4ae; border-radius:6px; padding:5px 12px; cursor:pointer;
+  }
+
+  @media (max-width:760px){
+    .day{min-height:84px;padding:6px 3px 8px;}
+    .tag{font-size:9.5px;padding:3px 4px;}
+    .dnum{font-size:11px;}
+    .dow{font-size:9.5px;}
+    .chk{font-size:10px;}
+    .memo-btn{font-size:9px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🏃 1.1km リレーマラソン トレーニングカレンダー</h1>
+  <div class="sub">2026/6/8（月）スタート ・ 全14週 ・ 本番 9/12〜13 ／ トレッドミルは傾斜1%</div>
+
+  <div class="toolbar">
+    <span class="countdown" id="countdown">本番まで —</span>
+    <div class="progress-wrap">
+      <div class="progress-label">消化率 <span id="progressText">0 / 0</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <button class="btn-today" onclick="scrollToToday()">今日へ移動</button>
+  </div>
+
+  <div class="legend">
+    <span class="lg-rest">休養</span>
+    <span class="lg-jog">ジョグ(土台/回復)</span>
+    <span class="lg-strength">全身筋トレ</span>
+    <span class="lg-interval">インターバル</span>
+    <span class="lg-outdoor">屋外ラン</span>
+    <span class="lg-race">レースペース走</span>
+    <span class="lg-taper">テーパリング</span>
+  </div>
+
+  <div id="calendar"></div>
+
+  <div class="footer">
+    ※ チェックとメモはこの端末・このブラウザに保存されます（localStorage）。機種変更や別ブラウザでは引き継がれません。<br>
+    ※ 本番日が確定したら最終週を微調整。週2しか走れない週は火 or 木のジョグを削り、インターバルと週末ランは死守。<br>
+    IT＝インターバル走 ／ RP走＝レースペース走
+    <br>
+    <button class="reset-btn" onclick="resetAll()">記録をすべて消去</button>
+  </div>
+</div>
+
+<script>
+// ===== トレーニングデータ =====
+// type: メニューの色分類, label: 表示テキスト, track: 消化率に数える練習日か
+const START = new Date(2026,5,8); // 6/8 (月)
+const phases = [
+  {cls:'p1', title:'第1期：土台づくり（第1〜5週）', note:'スピードは追わず、走る習慣と心肺のベースを作る', weeks:[1,2,3,4,5]},
+  {cls:'p2', title:'第2期：スピード導入（第6〜10週）', note:'金曜のインターバルが本命。本数を増やしスピード耐性を伸ばす', weeks:[6,7,8,9,10]},
+  {cls:'p3', title:'第3期：レース仕上げ（第11〜13週）', note:'本番ペースを身体に覚えさせる。週末のレースペース走が軸', weeks:[11,12,13]},
+  {cls:'p4', title:'第4期：テーパリング・本番週（第14週）', note:'疲労を抜いてピークを本番に合わせる。整える週', weeks:[14]},
+];
+
+// 各週 月→日 の7日分 [type,label,track]
+const R=['rest','休養',false], REST_J=['rest','休養 or<br>軽ジョグ',false], SPARE=['rest','予備/休養',false];
+const ST=['strength','全身筋トレ',true], STL=['strength','筋トレ<br>やや軽め',true];
+const weeks = {
+  1:[R,['jog','ジョグ3km<br>7km/h',true],ST,REST_J,['jog','ジョグ3km',true],['outdoor','屋外3km<br>地面に慣れる',true],SPARE],
+  2:[R,['jog','ジョグ3km',true],ST,REST_J,['jog','ジョグ3km',true],['outdoor','屋外3km',true],SPARE],
+  3:[R,['jog','ジョグ3.5km',true],ST,REST_J,['jog','ジョグ3.5km',true],['outdoor','屋外3km',true],SPARE],
+  4:[R,['jog','ジョグ3.5km<br>7.5km/h',true],ST,REST_J,['jog','ジョグ3.5km',true],['outdoor','屋外3.5km',true],SPARE],
+  5:[R,['jog','ジョグ3.5km',true],ST,REST_J,['jog','ジョグ3.5km',true],['outdoor','屋外3.5km',true],SPARE],
+  6:[R,['jog','ジョグ3km<br>回復',true],ST,REST_J,['interval','IT 400m×4<br>+200mジョグ',true],['outdoor','屋外3〜4km',true],SPARE],
+  7:[R,['jog','ジョグ3km',true],ST,REST_J,['interval','IT 400m×5<br>+200mジョグ',true],['outdoor','屋外3〜4km',true],SPARE],
+  8:[R,['jog','ジョグ3km',true],ST,REST_J,['interval','IT 400m×5<br>9.5km/h',true],['outdoor','屋外3〜4km',true],SPARE],
+  9:[R,['jog','ジョグ3km',true],ST,REST_J,['interval','IT 400m×6<br>9.5-10km/h',true],['outdoor','屋外4km',true],SPARE],
+  10:[R,['jog','ジョグ3km',true],ST,REST_J,['interval','IT 600m×4<br>+200mジョグ',true],['outdoor','屋外4km',true],SPARE],
+  11:[R,['jog','ジョグ3km<br>回復',true],STL,REST_J,['interval','IT 400m×5',true],['race','RP走 1km<br>8-8.5km/h',true],SPARE],
+  12:[R,['jog','ジョグ3km',true],STL,REST_J,['interval','IT 400m×5',true],['race','RP走 1.1km<br>タイム計測',true],SPARE],
+  13:[R,['jog','ジョグ3km',true],STL,REST_J,['interval','IT 400m×5',true],['race','RP走 1.1km<br>ちょい速め',true],SPARE],
+  14:[R,['jog','軽ジョグ2km',true],['rest','休養<br>(筋トレ無)',false],['taper','200m×3<br>軽い刺激',true],R,['goal','🏁 本番<br>候補',false],['goal','🏁 本番<br>候補',false]],
+};
+const DOW=['月','火','水','木','金','土','日'];
+const GOAL_DATE = new Date(2026,8,12); // 9/12 本番候補(先の方)
+
+function fmt(d){ return (d.getMonth()+1)+'/'+d.getDate(); }
+function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function load(){ try{ return JSON.parse(localStorage.getItem('training_log_v1')||'{}'); }catch(e){ return {}; } }
+function save(data){ localStorage.setItem('training_log_v1', JSON.stringify(data)); }
+let store = load();
+
+function todayISO(){ const t=new Date(); return iso(new Date(t.getFullYear(),t.getMonth(),t.getDate())); }
+
+function build(){
+  const cal = document.getElementById('calendar');
+  cal.innerHTML='';
+  const tISO = todayISO();
+  phases.forEach(p=>{
+    const ph=document.createElement('div');
+    ph.className='phase '+p.cls;
+    ph.innerHTML=p.title+' <small>'+p.note+'</small>';
+    cal.appendChild(ph);
+    p.weeks.forEach(wn=>{
+      const wkStart=new Date(START); wkStart.setDate(START.getDate()+(wn-1)*7);
+      const wkEnd=new Date(wkStart); wkEnd.setDate(wkStart.getDate()+6);
+      const wk=document.createElement('div'); wk.className='week';
+      wk.innerHTML='<div class="week-head"><span class="wno">Week '+wn+'</span><span class="wdate">'+fmt(wkStart)+' – '+fmt(wkEnd)+'</span></div>';
+      const days=document.createElement('div'); days.className='days';
+      weeks[wn].forEach((d,i)=>{
+        const dt=new Date(wkStart); dt.setDate(wkStart.getDate()+i);
+        const key=iso(dt);
+        const rec=store[key]||{};
+        const isToday=(key===tISO);
+        const dayEl=document.createElement('div');
+        let cls='day'; if(i===5)cls+=' sat'; if(i===6)cls+=' sun';
+        if(isToday)cls+=' today'; if(rec.done)cls+=' done';
+        dayEl.className=cls;
+        dayEl.id='d-'+key;
+        const [type,label,track]=d;
+        const hasMemo=rec.memo&&rec.memo.trim().length>0;
+        dayEl.innerHTML=
+          '<div class="dow">'+DOW[i]+'</div>'+
+          '<div class="dnum">'+fmt(dt)+(isToday?'<span class="today-badge">今日</span>':'')+'</div>'+
+          '<div class="tag t-'+type+'">'+label+'</div>'+
+          '<div class="day-foot">'+
+            (track?'<label class="chk"><input type="checkbox" '+(rec.done?'checked':'')+' onchange="toggle(\''+key+'\',this.checked)">完了</label>':'')+
+            '<button class="memo-btn'+(hasMemo?' has-memo':'')+'" onclick="toggleMemo(\''+key+'\')">'+(hasMemo?'📝 メモあり':'＋メモ')+'</button>'+
+            '<div class="memo-box hidden" id="m-'+key+'"><textarea placeholder="キツさ(10段階)・体調など" oninput="setMemo(\''+key+'\',this.value)">'+(rec.memo||'')+'</textarea></div>'+
+          '</div>';
+        days.appendChild(dayEl);
+      });
+      wk.appendChild(days);
+      cal.appendChild(wk);
+    });
+  });
+  updateProgress();
+  updateCountdown();
+}
+
+function toggle(key,val){
+  store[key]=store[key]||{}; store[key].done=val; save(store);
+  const el=document.getElementById('d-'+key);
+  if(el){ val?el.classList.add('done'):el.classList.remove('done'); }
+  updateProgress();
+}
+function toggleMemo(key){
+  const box=document.getElementById('m-'+key);
+  if(box) box.classList.toggle('hidden');
+}
+function setMemo(key,val){
+  store[key]=store[key]||{}; store[key].memo=val; save(store);
+  // update button label live
+  build_buttonLabel(key,val);
+}
+function build_buttonLabel(key,val){
+  const el=document.getElementById('d-'+key);
+  if(!el)return;
+  const btn=el.querySelector('.memo-btn');
+  if(!btn)return;
+  if(val&&val.trim().length>0){ btn.classList.add('has-memo'); btn.textContent='📝 メモあり'; }
+  else { btn.classList.remove('has-memo'); btn.textContent='＋メモ'; }
+}
+
+function updateProgress(){
+  let total=0,done=0;
+  Object.values(weeks).forEach(w=>w.forEach(d=>{ if(d[2])total++; }));
+  // count done among trackable days
+  const trackKeys=new Set();
+  phases.forEach(p=>p.weeks.forEach(wn=>{
+    const wkStart=new Date(START); wkStart.setDate(START.getDate()+(wn-1)*7);
+    weeks[wn].forEach((d,i)=>{ if(d[2]){ const dt=new Date(wkStart); dt.setDate(wkStart.getDate()+i); trackKeys.add(iso(dt)); } });
+  }));
+  trackKeys.forEach(k=>{ if(store[k]&&store[k].done)done++; });
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressText').textContent=done+' / '+total+'（'+pct+'%）';
+}
+
+function updateCountdown(){
+  const t=new Date(); const today=new Date(t.getFullYear(),t.getMonth(),t.getDate());
+  const diff=Math.round((GOAL_DATE-today)/86400000);
+  const el=document.getElementById('countdown');
+  if(diff>0) el.textContent='本番まで あと'+diff+'日';
+  else if(diff===0) el.textContent='🏁 本番当日！';
+  else el.textContent='お疲れさま！';
+}
+
+function scrollToToday(){
+  const el=document.getElementById('d-'+todayISO());
+  if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.transition='box-shadow .2s'; }
+  else { alert('今日はトレーニング期間（6/8〜9/13）の範囲外です'); }
+}
+
+function resetAll(){
+  if(confirm('記録（チェック・メモ）をすべて消去します。よろしいですか？')){
+    localStorage.removeItem('training_log_v1'); store={}; build();
+  }
+}
+
+build();
+// 初回表示時、今日が期間内なら自動で今日へ
+window.addEventListener('load',()=>{ if(document.getElementById('d-'+todayISO())) setTimeout(scrollToToday,300); });
+</script>
+</body>
+</html>
