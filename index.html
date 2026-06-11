@@ -38,6 +38,16 @@
   }
   .btn-today:active { opacity:.8; }
 
+  /* 画面に固定される追従ボタン */
+  .fab-today {
+    position:fixed; right:16px; bottom:20px; z-index:50;
+    background:#2c3138; color:#fff; border:none;
+    font-size:14px; font-weight:700; padding:12px 18px; border-radius:28px;
+    box-shadow:0 4px 14px rgba(0,0,0,.25); cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+  }
+  .fab-today:active { opacity:.85; transform:translateY(1px); }
+
   .legend { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px; }
   .legend span { font-size:12px; padding:3px 10px; border-radius:20px; font-weight:600; }
   .lg-rest{background:var(--rest);color:var(--rest-tx);}
@@ -159,6 +169,8 @@
     <button class="reset-btn" onclick="resetAll()">記録をすべて消去</button>
   </div>
 </div>
+
+<button class="fab-today" onclick="scrollToToday()">📍 今日へ</button>
 
 <script>
 // ===== トレーニングデータ =====
@@ -309,7 +321,11 @@ function resetAll(){
 
 build();
 // 初回表示時、今日が期間内なら自動で今日へ
-window.addEventListener('load',()=>{ if(document.getElementById('d-'+todayISO())) setTimeout(scrollToToday,300); });
+window.addEventListener('load',()=>{
+  const hasToday = document.getElementById('d-'+todayISO());
+  if(hasToday){ setTimeout(scrollToToday,300); }
+  else { const fab=document.querySelector('.fab-today'); if(fab) fab.style.display='none'; }
+});
 </script>
 </body>
 </html>
